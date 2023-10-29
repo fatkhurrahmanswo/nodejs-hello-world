@@ -1,8 +1,6 @@
 #!/bin/bash
 
 # env
-$image = ${{ steps.build-image.outputs.image }}
-echo "image"
 echo $image
 
 # path
