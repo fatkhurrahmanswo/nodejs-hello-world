@@ -1,0 +1,95 @@
+name: Github Actions Workflows
+on:
+  push:
+      branches:
+        - production
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+
+
+jobs:
+  # production
+  build_production:
+    name: Build production
+    if: contains( github.ref, 'production')
+    runs-on: ubuntu-20.04
+    timeout-minutes: 30
+    env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+        ECR_REPOSITORY: ${{ secrets.PROD_ECR_REPOSITORY }}
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@0e613a0980cbf65ed5b322eb7a1e075d28913a83
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@62f4f872db3836360b72999f4b87f1ff13310f3a
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . -f Dockerfile
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: extract image name
+        run: |-
+          echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" > IMAGE_NAME
+
+      - name: upload image name artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: IMAGE_NAME
+          path: IMAGE_NAME
+
+      - name: filtering environment variables
+        run: |-
+          chmod +x -R deployment/config/env-filter.sh
+          deployment/config/env-filter.sh
+
+  deploy_production:
+    name: Deploy production
+    needs: build_production
+    runs-on: ubuntu-20.04
+    timeout-minutes: 30
+    env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: IMAGE_NAME
+
+      - name: extracting image name
+        run: |-
+          IMAGE_NAME=`cat IMAGE_NAME.txt`
+          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+
+      - name: preparing environment variables
+        run: |-
+          chmod +x -R deployment/config/env-filter.sh
+          deployment/config/env-filter.sh
+
+      - name: upload apps.tfvars artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: apps-tfvars
+          path: deployment/terraform/production/apps.tfvars
+
