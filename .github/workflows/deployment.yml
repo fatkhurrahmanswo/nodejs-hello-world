@@ -58,8 +58,8 @@ jobs:
 
       - name: filtering environment variables
         run: |-
-          chmod +x -R deployment/config/env-filter.sh
-          deployment/config/env-filter.sh
+          chmod +x -R deployments/config/env-filter.sh
+          deployments/config/env-filter.sh
 
   deploy_production:
     name: Deploy production
@@ -84,12 +84,12 @@ jobs:
 
       - name: preparing environment variables
         run: |-
-          chmod +x -R deployment/config/env-filter.sh
-          deployment/config/env-filter.sh
+          chmod +x -R deployments/config/env-filter.sh
+          deployments/config/env-filter.sh
 
       - name: upload apps.tfvars artifact
         uses: actions/upload-artifact@v3
         with:
           name: apps-tfvars
-          path: deployment/terraform/production/apps.tfvars
+          path: deployments/terraform/production/apps.tfvars
 
