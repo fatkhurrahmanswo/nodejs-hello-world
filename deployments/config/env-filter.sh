@@ -4,7 +4,7 @@
 echo $image
 
 # path
-deployment_path="deployments/terraform/apps.tfvars"
+tfvars_path="deployments/terraform/apps.tfvars"
 
 # deployment
-# sed -i "s|{{ image }}|$image|g" $deployment_path
+sed -i "s|{{ image }}|$image|g" $tfvars_path
