@@ -87,11 +87,11 @@ jobs:
           chmod +x -R deployments/config/env-filter.sh
           deployments/config/env-filter.sh
 
-      - name: upload apps.tfvars artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: apps-tfvars
-          path: deployments/terraform/production/apps.tfvars
+      # - name: upload apps.tfvars artifact
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: apps-tfvars
+      #     path: deployments/terraform/production/apps.tfvars
 
       - name: tf init
         run: |-
@@ -102,4 +102,9 @@ jobs:
         run: |-
           cd deployments/terraform/production/
           terraform plan -var-file="apps.tfvars"
+
+      - name: tf apply
+        run: |-
+          cd deployments/terraform/production/
+          terraform apply -var-file="apps.tfvars" --auto-approve
 

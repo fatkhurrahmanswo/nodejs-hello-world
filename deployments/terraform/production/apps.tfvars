@@ -9,14 +9,14 @@ requires_compatibilities = ["EC2"]
 volume                   = {}
 cpu                      = 256
 memory                   = 512
-container_port           = 9001
+container_port           = 3000
 container_definitions = {
   Mysiloam-prod-ecs-hello-world = {
     image = "{{ image }}"
     port_mappings = [
       {
         name          = "mysiloam-prod-ecs-hello-world"
-        containerPort = 9001
+        containerPort = 3000
         protocol      = "tcp"
         appProtocol   = "http"
       }
@@ -35,7 +35,7 @@ load_balancer = {
   service = {
     target_group_arn = "arn:aws:elasticloadbalancing:ap-southeast-3:672275484883:targetgroup/Mysiloam-iac-nlb-hello-world/0e44a6a970c4fb5b"
     container_name   = "Mysiloam-prod-ecs-hello-world"
-    container_port   = 9001
+    container_port   = 3000
   }
 }
 capacity_provider_strategy = {
