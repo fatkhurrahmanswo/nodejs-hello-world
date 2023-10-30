@@ -48,7 +48,7 @@ jobs:
 
       - name: extract image name
         run: |-
-          echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" > IMAGE_NAME
+          echo "$image" > IMAGE_NAME
 
       - name: upload image name artifact
         uses: actions/upload-artifact@v3
@@ -92,4 +92,14 @@ jobs:
         with:
           name: apps-tfvars
           path: deployments/terraform/production/apps.tfvars
+
+      - name: tf init
+        run: |-
+          cd deployments/terraform/production/
+          terraform init
+
+      - name: tf plan
+        run: |-
+          cd deployments/terraform/production/
+          terraform plan -var-file="apps.tfvars"
 
