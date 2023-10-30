@@ -15,7 +15,7 @@ jobs:
   build_production:
     name: Build production
     if: contains( github.ref, 'production')
-    runs-on: man20820
+    runs-on: ubuntu-20.04
     timeout-minutes: 30
     env:
         AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY }}
@@ -64,7 +64,7 @@ jobs:
   deploy_production:
     name: Deploy production
     needs: build_production
-    runs-on: man20820
+    runs-on: ubuntu-20.04
     timeout-minutes: 30
     env:
         AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY }}
